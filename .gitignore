@@ -9,3 +9,6 @@ data/
 
 *.html
 !gh-pages/**/*.html
+
+output/*
+!output/*.png
