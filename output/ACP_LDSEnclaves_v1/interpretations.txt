@@ -1,0 +1,6 @@
+These results remind me of my runs on swiss data. 
+
+No region of tv static, and a big trivial case area where the starting seed is returned exactly.
+
+The cool urbanism thing from the tidewater runs is happening again, this time finding SLC, Phoenix, Houston, Dallas.
+

@@ -1,0 +1,9 @@
+## gitignore
+
+data/
+
+**/tmp/
+**/logs/
+
+*.rds
+
