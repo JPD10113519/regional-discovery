@@ -8,7 +8,7 @@ data/
 *.rds
 
 *.html
-!gh-pages/**/*.html
+!docs/**/*.html
 
 output/*
 !output/*.png

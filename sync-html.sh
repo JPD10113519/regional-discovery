@@ -1,31 +1,31 @@
 #!/bin/bash
 
 # Find all HTML files, excluding tmp and logs directories
-# Copy them to gh-pages/ with a flattened structure
+# Copy them to docs/ with a flattened structure
 find . -name "*.html" \
   -not -path "*/tmp/*" \
   -not -path "*/logs/*" \
-  -not -path "./gh-pages/*" \
+  -not -path "./docs/*" \
   -not -path "./.git/*" \
-  -exec cp {} gh-pages/ \;
+  -exec cp {} docs/ \;
 
 # Find and copy matching folders (same name as HTML files without .html)
 find . -name "*.html" \
   -not -path "*/tmp/*" \
   -not -path "*/logs/*" \
-  -not -path "./gh-pages/*" \
+  -not -path "./docs/*" \
   -not -path "./.git/*" | while read htmlfile; do
     # Get the base name without .html extension
     basename="${htmlfile%.html}"
     # Check if a folder with that name exists
     if [ -d "${basename}_files" ]; then
-        # Copy the folder to gh-pages
-        cp -r "${basename}_files" gh-pages/
+        # Copy the folder to docs
+        cp -r "${basename}_files" docs/
     fi
 done
 
 # Create an index page
-cat > gh-pages/index.html << 'EOF'
+cat > docs/index.html << 'EOF'
 <!DOCTYPE html>
 <html>
 <head>
@@ -42,17 +42,17 @@ cat > gh-pages/index.html << 'EOF'
 EOF
 
 # Add links to all HTML files (except index.html)
-for file in gh-pages/*.html; do
+for file in docs/*.html; do
     if [ "$(basename "$file")" != "index.html" ]; then
-        echo "        <li><a href=\"$(basename "$file")\">$(basename "$file")</a></li>" >> gh-pages/index.html
+        echo "        <li><a href=\"$(basename "$file")\">$(basename "$file")</a></li>" >> docs/index.html
     fi
 done
 
-cat >> gh-pages/index.html << 'EOF'
+cat >> docs/index.html << 'EOF'
     </ul>
     <p><em>Last updated: $(date)</em></p>
 </body>
 </html>
 EOF
 
-echo "✓ HTML files and folders synced to gh-pages/"
+echo "✓ HTML files and folders synced to docs/"
