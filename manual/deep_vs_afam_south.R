@@ -1,9 +1,9 @@
 ## Hypothesis: some converged "deep south" rois are the same as "african american south" rois
 
 deep <- readRDS("../output/AN_DeepSouth_v1/AN_DeepSouth_v1.rds")
-## I ran afamsouth in the usa directory. Gonna clean this up later.
-
-afam <- readRDS("../../Schweiz/output/CB_AN/afamsouth_zoom.rds")
+## I ran afamsouth in the schweiz directory. Gonna clean this up later.
+## it's fixed now, get rid of this line
+#afam <- readRDS("../../Schweiz/output/CB_AN/afamsouth_zoom.rds")
 
 deeprois <- unique(deep$final_roi)
 afamrois <- unique(afam$final_roi)

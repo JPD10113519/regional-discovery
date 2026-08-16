@@ -21,7 +21,7 @@ results <- readRDS(paste0("output/", job_name, "/", job_name, ".rds"))
 rois <- readRDS("data/polisci_rois.rds")
 seed_roi <- rois[[roi_name]]
 
-output_file <- paste0("output/", job_name, "/", job_name, "_rois.html")
+output_file <- paste0("output/", job_name, "/", job_name, "_rois_test.html")
 
 # --------------------------------------------------------------------------
 # Step 1: Create binary string representation for hashing/comparison
@@ -106,6 +106,10 @@ create_map_base64 <- function(roi_vector, region_color) {
   return(map_base64)
 }
 
+## testing lines
+#render_base64 <- function(b64) htmltools::browsable(htmltools::HTML(paste0('<img src="data:image/png;base64,', b64, '">')))
+#render_base64(unique_regions$map_base64[7])
+
 # --------------------------------------------------------------------------
 # Step 6: Generate all unique maps
 # --------------------------------------------------------------------------
@@ -173,129 +177,10 @@ p <- ggplot(results, aes(x = dev_value, y = p_cutoff, fill = color,
   )
 
 # --------------------------------------------------------------------------
-# Step 11: Convert to plotly - customdata should be preserved
-# --------------------------------------------------------------------------
-interactive_p <- ggplotly(p, tooltip = "none")
-
-# Check if customdata made it through
-print("Checking if customdata was preserved:")
-if(!is.null(interactive_p$x$data[[1]]$customdata)) {
-  print("Success! First customdata:")
-  print(head(interactive_p$x$data[[1]]$customdata))
-} else {
-  print("Customdata not preserved through ggplotly")
-}
-
-# Parse the customdata in JavaScript instead of trying to set it in R
-interactive_p <- onRender(interactive_p, sprintf("
-  function(el, x) {
-    console.log('onRender function called');
-    
-    var mapLibrary = %s;
-    console.log('Number of maps in library:', Object.keys(mapLibrary).length);
-    
-    var tooltip = document.createElement('div');
-    tooltip.id = 'county-map-tooltip';
-    Object.assign(tooltip.style, {
-      position: 'fixed',
-      backgroundColor: 'white',
-      border: '2px solid #333',
-      borderRadius: '8px',
-      padding: '15px',
-      zIndex: '10000',
-      display: 'none',
-      pointerEvents: 'none',
-      boxShadow: '0 6px 12px rgba(0,0,0,0.15)',
-      maxWidth: '450px'
-    });
-    document.body.appendChild(tooltip);
-    
-    el.on('plotly_hover', function(data) {
-      console.log('Hover event triggered');
-      var point = data.points[0];
-      
-      // Check different possible locations for customdata
-      var customStr = point.customdata || point.text || null;
-      console.log('Custom string:', customStr);
-      
-      if (customStr && typeof customStr === 'string' && customStr.includes('|')) {
-        var parts = customStr.split('|');
-        var mapId = parts[0];
-        var devValue = parseFloat(parts[1]);
-        var pCutoff = parseFloat(parts[2]);
-        var steps = parseInt(parts[3]);
-        
-        console.log('Parsed - Map ID:', mapId);
-        
-        if (mapId && mapLibrary[mapId]) {
-          var content = '<div style=\"font-family: Arial, sans-serif;\">';
-          content += '<div style=\"margin-bottom: 10px;\">';
-          content += '<b>Parameters:</b><br>';
-          content += 'Deviance: ' + devValue.toFixed(2) + '<br>';
-          content += 'P-cutoff: ' + pCutoff.toFixed(3) + '<br>';
-          content += 'Steps to convergence: ' + steps + '<br>';
-          content += '</div>';
-          content += '<div style=\"margin-top: 10px;\">';
-          content += '<b>Converged Region:</b><br>';
-          content += mapLibrary[mapId];
-          content += '</div>';
-          content += '</div>';
-          
-          var x = data.event.clientX;
-          var y = data.event.clientY;
-          var tooltipWidth = 450;
-          var tooltipHeight = 350;
-          
-          var left = (x + tooltipWidth + 20 > window.innerWidth) ? 
-                     x - tooltipWidth - 20 : x + 20;
-          var top = (y + tooltipHeight + 20 > window.innerHeight) ? 
-                    y - tooltipHeight - 20 : y + 20;
-          
-          tooltip.style.left = left + 'px';
-          tooltip.style.top = top + 'px';
-          tooltip.innerHTML = content;
-          tooltip.style.display = 'block';
-        }
-      }
-    });
-    
-    el.on('plotly_unhover', function() {
-      tooltip.style.display = 'none';
-    });
-    
-    el.on('plotly_relayout', function() {
-      tooltip.style.display = 'none';
-    });
-  }
-", toJSON(map_library, auto_unbox = TRUE)))
-
-print("=== PLOTLY STRUCTURE DEBUG ===")
-print(paste("Total traces:", length(interactive_p$x$data)))
-
-for(i in 1:min(3, length(interactive_p$x$data))) {
-  trace <- interactive_p$x$data[[i]]
-  print(paste("\n--- Trace", i, "---"))
-  print(paste("Type:", trace$type))
-  print(paste("Has x:", !is.null(trace$x)))
-  print(paste("Has y:", !is.null(trace$y)))
-  print(paste("Has customdata:", !is.null(trace$customdata)))
-  
-  if(!is.null(trace$x)) {
-    print(paste("Number of points:", length(trace$x)))
-  }
-  
-  if(!is.null(trace$customdata)) {
-    print(paste("Customdata length:", length(trace$customdata)))
-    print("First customdata entry:")
-    print(trace$customdata[1])
-    print("Customdata class:")
-    print(class(trace$customdata))
-  }
-}
-
-# --------------------------------------------------------------------------
 # Step 11: Simple version - just show the map for the hovered trace
 # --------------------------------------------------------------------------
+
+interactive_p <- ggplotly(p, tooltip = "none")
 
 # Create a map library indexed by trace/color instead of individual points
 # We need to map from color -> map_id

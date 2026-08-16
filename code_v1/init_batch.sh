@@ -4,5 +4,5 @@
 #SBATCH --mem=8G
 #SBATCH --cpus-per-task=4
 
-Rscript code/exe_batch.R $SLURM_ARRAY_TASK_ID ${JOB_NAME} ${SEED_NAME}
+Rscript code_v1/exe_batch.R $SLURM_ARRAY_TASK_ID ${JOB_NAME} ${SEED_NAME}
 

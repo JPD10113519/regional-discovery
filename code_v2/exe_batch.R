@@ -1,30 +1,38 @@
-# Get the array task ID from SLURM -- ranging from 0 to 199
+# Get the array task ID from SLURM -- ranging from 0 to 599 (kicking density way up)
 args <- commandArgs(trailingOnly = TRUE)
 task_id <- as.numeric(args[1])
 job_name <- args[2]
 roi_name <- args[3]
 
 starttime <- Sys.time() ## timing for logs
+library(dplyr)
+source("code_v2/PREDSload.R") ## get prediction data ## my 5 good swiss variables here
+source("code_v2/model_functions.R") ## get functions
 
-source("code/PREDSload.R") ## get prediction data ## this test is with refined
-source("code/model_functions.R") ## get functions
+## set up our ROI ## this dosen't need any roi_name input but whatever. Can call the job anything.
+fullfrench <- "11111011000000000000000000"
 
-## set up our ROI
-rois <- readRDS("data/polisci_rois.rds")
-ROI <- rois[[roi_name]]
+ROIint <- strtoi(fullfrench,base=2)
+ROI <- task_id_to_binary(ROIint)
 
-## standard devrange values
-devrange <- seq(85,99.9,length.out=100)
-prange <- seq(0.01,0.99,length.out=100)
+set.seed(234234)
+int <- runif(1, min=0, max = 2^26-1)
+ROI <- task_id_to_binary(int)
+## going to test a random one
+
+
+## standard devrange value
+devrange <- seq(60,99.99,length.out=300) ## i'm actually interested in lower dev values because the feature count is pretty low
+prange <- seq(0.001,0.999,length.out=300) ## still full p value range
 
 ## batching by vertical striping. One dev value and half of the p value range.
-devind <- task_id %% 100 + 1
+devind <- task_id %% 300 + 1
 dev <- devrange[devind]
-phalf <- trunc(task_id/100)
+phalf <- trunc(task_id/300)
 if (phalf == 0) {
-  pvals <- prange[1:50]
+  pvals <- prange[1:150]
 } else {
-  pvals <- prange[51:100]
+  pvals <- prange[151:300]
 }
 
 ## premake results df
@@ -42,7 +50,7 @@ library(parallel)
 n_cores <- as.integer(Sys.getenv("SLURM_CPUS_PER_TASK", "1"))
 
 results <- mclapply(pvals, function(p) {
-  run_iteration(target_dev = dev, p_cutoff = p, ROI = ROI,max_iterations = 200)
+  run_iteration(target_dev = dev, p_cutoff = p, ROI = ROI,max_iterations = 100)
 }, mc.cores = n_cores)
 
 ## now populate and save

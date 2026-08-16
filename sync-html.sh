@@ -9,7 +9,7 @@ find . -name "*.html" \
   -not -path "./.git/*" \
   -exec cp {} docs/ \;
 
-# Find and copy matching folders (same name as HTML files without .html)
+# Find and copy matching folders
 find . -name "*.html" \
   -not -path "*/tmp/*" \
   -not -path "*/logs/*" \
